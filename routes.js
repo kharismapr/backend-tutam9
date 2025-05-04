@@ -1,0 +1,43 @@
+// backend/routes/todoRoutes.js
+const express = require('express');
+const router = express.Router();
+const db = require('./database');
+
+// Get all todos
+router.get('/todos', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM todos ORDER BY id ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create a todo
+router.post('/todos', async (req, res) => {
+  const { title } = req.body;
+  if (!title) return res.status(400).json({ error: 'Title is required' });
+
+  try {
+    const result = await db.query(
+      'INSERT INTO todos (title, completed) VALUES ($1, $2) RETURNING *',
+      [title, false]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a todo
+router.delete('/todos/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM todos WHERE id = $1', [id]);
+    res.json({ message: 'Todo deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
