@@ -6,7 +6,7 @@ const db = require('./database');
 // Get all todos
 router.get('/todos', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM todos ORDER BY id ASC');
+    const result = await db.query('SELECT * FROM todos ORDER BY deadline ASC');
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -15,13 +15,15 @@ router.get('/todos', async (req, res) => {
 
 // Create a todo
 router.post('/todos', async (req, res) => {
-  const { title } = req.body;
-  if (!title) return res.status(400).json({ error: 'Title is required' });
+  const { title, deadline } = req.body;
+  if (!title || !deadline) {
+    return res.status(400).json({ error: 'Title and deadline are required' });
+  }
 
   try {
     const result = await db.query(
-      'INSERT INTO todos (title, completed) VALUES ($1, $2) RETURNING *',
-      [title, false]
+      'INSERT INTO todos (title, deadline) VALUES ($1, $2) RETURNING *',
+      [title, deadline]
     );
     res.json(result.rows[0]);
   } catch (err) {
