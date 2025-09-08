@@ -15,15 +15,19 @@ router.get('/todos', async (req, res) => {
 
 // Create a todo
 router.post('/todos', async (req, res) => {
-  const { title, deadline } = req.body;
-  if (!title || !deadline) {
-    return res.status(400).json({ error: 'Title and deadline are required' });
+  const { title, deadline, category } = req.body;
+  if (!title || !deadline || !category) {
+    return res.status(400).json({ error: 'Fill all the requirements' });
+  }
+
+  if (!category || !['Academic', 'Organization'].includes(category)) {
+    return res.status(400).json({ error: 'Valid category (Academic or Organization) is required' });
   }
 
   try {
     const result = await db.query(
-      'INSERT INTO todos (title, deadline, completed) VALUES ($1, $2, false) RETURNING *',
-      [title, deadline]
+      'INSERT INTO todos (title, deadline, category, completed) VALUES ($1, $2, $3, false) RETURNING *',
+      [title, deadline, category]
     );
     res.json(result.rows[0]);
   } catch (err) {
